@@ -10,10 +10,10 @@
 #include <stdexcept>
 
 namespace my_std {
-    class FileWin32ApiGuard {
+    class FileWin32ApiGuard final{
         HANDLE hFile;
     public:
-        FileWin32ApiGuard(const char * filename,
+        explicit FileWin32ApiGuard(const char * filename,
                   DWORD DwDesiredAccess = GENERIC_READ,
                   DWORD DwShareMode = 0,
                   LPSECURITY_ATTRIBUTES IpSecurityAttributes = NULL,
@@ -34,7 +34,7 @@ namespace my_std {
             }
         }
 
-        HANDLE operator->() { return hFile; }
+        operator HANDLE() const { return hFile; }
 
         ~FileWin32ApiGuard() {
             CloseHandle(hFile);

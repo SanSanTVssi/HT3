@@ -7,6 +7,12 @@
 //#define AllocGuard int
 //#define gMemoryLeak 0
 
+#include <iostream>
+#include <memory>
+#include <utility>
+#include "shared_ptr.h"
+#include "mem.h"
+
 // TODO: set to 1 once implemented
 #define RUN_TESTS_ON_MY_IMPLEMENTATION 1
 
