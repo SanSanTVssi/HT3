@@ -11,7 +11,7 @@ namespace my_std {
 
         defaultDeleter() : _deleter_function([](T *ptr) { delete ptr; }) {}
 
-        defaultDeleter(void (*deleter)(T *)) : _deleter_function(std::move(deleter)) {}
+        defaultDeleter(void (*deleter)(T *)) noexcept : _deleter_function(std::move(deleter)) {}
 
         void operator()(T *ptr) { _deleter_function(ptr); }
     };
@@ -40,7 +40,7 @@ namespace my_std {
 
             CommandBlockImp() : CommandBlock(), data(nullptr), deleter(Deleter()) {}
 
-            CommandBlockImp(T *data_ptr, Deleter deleter_ptr)
+            CommandBlockImp(T *data_ptr, Deleter deleter_ptr) noexcept
                     : CommandBlock(), data(data_ptr), deleter(std::move(deleter_ptr)) {}
 
 
@@ -48,7 +48,7 @@ namespace my_std {
 
             ~CommandBlockImp() override = default;
 
-            [[nodiscard]] long use_count() const override{
+            long use_count() const override{
                 return (data == nullptr) ? 0 : ReferenceCount;
             }
         };
@@ -92,7 +92,7 @@ namespace my_std {
             return *this;
         }
 
-        [[nodiscard]] T *get() const {
+        T *get() const {
             if (auto cmi = dynamic_cast<CommandBlockImp *>(ComBlock_ptr)) {
                 return cmi->data;
             } else {
@@ -100,7 +100,7 @@ namespace my_std {
             }
         }
 
-        [[nodiscard]] Deleter getDeleter() const {
+        Deleter getDeleter() const {
             if (auto cmi = dynamic_cast<CommandBlockImp *>(ComBlock_ptr)) {
                 return cmi->deleter;
             } else {
@@ -125,13 +125,14 @@ namespace my_std {
         }
 
         void reset(T *ptr = nullptr) noexcept {
-            shared_ptr newShr = *this;
-            --newShr.ComBlock_ptr->ReferenceCount;
+            // Copy Command Block
             CommandBlockImp * newCM = new CommandBlockImp;
             newCM->deleter = returnComBlockImp()->deleter;
             newCM->ReferenceCount = 1;
             newCM->WeakCount = 0;
             newCM->data = ptr;
+            // Call destructor
+            this->~shared_ptr();
             this->ComBlock_ptr = newCM;
         }
 
@@ -155,7 +156,7 @@ namespace my_std {
             this->reset(ptr, del);
         }
 
-        [[nodiscard]] long use_count() const noexcept { return (returnComBlockImp()->data == nullptr) ? 0 : ComBlock_ptr->ReferenceCount; }
+        long use_count() const noexcept { return (returnComBlockImp()->data == nullptr) ? 0 : ComBlock_ptr->ReferenceCount; }
 
         ~shared_ptr() {
             if (!--ComBlock_ptr->ReferenceCount) {
@@ -200,6 +201,7 @@ namespace my_std {
                 ComBlock_ptr = other.ComBlock_ptr;
                 return *this;
             }
+            return *this;
         }
 
         long use_count() const{
@@ -222,9 +224,9 @@ namespace my_std {
             sharedPtr.reset(ptr);
         }
 
-        [[nodiscard]] bool expired() const { return use_count() == 0; }
+        bool expired() const { return use_count() == 0; }
 
-        [[nodiscard]] shared_ptr<U, del> lock() const noexcept {
+        shared_ptr<U, del> lock() const noexcept {
             return shared_ptr<U, del>(*this);
         }
 
@@ -249,4 +251,3 @@ namespace my_std {
         return shared_ptr<T, Deleter>(new T(data));
     }
 }
-

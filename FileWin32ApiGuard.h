@@ -13,6 +13,19 @@ namespace my_std {
     class FileWin32ApiGuard final{
         HANDLE hFile;
     public:
+        FileWin32ApiGuard() = delete;
+
+        FileWin32ApiGuard(FileWin32ApiGuard &) = delete;
+
+        FileWin32ApiGuard(FileWin32ApiGuard &&other) noexcept : hFile(other.hFile) { other.hFile = nullptr; }
+
+        FileWin32ApiGuard& operator=(FileWin32ApiGuard &) = delete;
+
+        FileWin32ApiGuard& operator=(FileWin32ApiGuard &&other) noexcept {
+            hFile = other.hFile;
+            other.hFile = nullptr;
+        }
+
         explicit FileWin32ApiGuard(const char * filename,
                   DWORD DwDesiredAccess = GENERIC_READ,
                   DWORD DwShareMode = 0,

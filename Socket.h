@@ -75,7 +75,6 @@ namespace my_std {
         auto instance5 = SocketGuard<decltype(stdFuncDeleter)>(58925, stdFuncDeleter);
         instance5.~SocketGuard();
         std::cout << "sizeof:" << sizeof(instance5) << "\t" << instance5 << std::endl;
-
     }
 }
 
